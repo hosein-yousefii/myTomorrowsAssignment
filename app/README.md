@@ -2,6 +2,9 @@
 Basic flask application with 2 endpoints
 - /       : a simple response from app
 - /config : Json response of some variables
+- /healthz: is implemented to do simple check if service is available and it returns 200
+
+It's better to write instruments for applications to publish some metrics to prometheus
 
 Current versions:
 * Flask 3.1.0
