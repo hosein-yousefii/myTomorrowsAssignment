@@ -29,6 +29,7 @@ In order to run this application on your local system, I suggest to run it on a 
 # Answers to assignment questions in Readme.md
 
 **Explaining how the code works, how to deploy the application and how to verify its successful deployment.**
+
 * on each directory Readme.md is provided with needed information, but generally:
  There is a flask-basis docker image which provide the necessary steps to build an image. Using ONBUILD option
 helps to do not waste time on building unnecessary steps on basis image, and MOUNT CACHE option is available if needed.
@@ -43,6 +44,7 @@ lues.yaml or provide a separate values.yaml
 by executing the start-up.sh script it starts to implement minikube and then deploy application using terraform.
 
 **Explain the decisions made during the design and implementation of the solution.**
+
 * Since it's required that the Helm chart and Terraform be written in a reusable way for other
 applications, I also created a Docker base image that can be reused by applications of the same
 type.
@@ -91,6 +93,7 @@ for the environment while also sharing Terraform modules efficiently.
 I think the approach of centralization is good and makes the management easier, it has some drawbacks and complexity too. (changes might affect others, so need to be more complex)
 
 **Explain the networking strategy you would adopt to deploy production ready applications on AWS.**
+
 * I would consider high availability, security, scalability, and manageability to answer this
 question.
 * VPC design: Use a separate VPC to isolate the production environment, implement subnet
@@ -104,6 +107,7 @@ infrastructure, as these options are commonly used and highly effective.
 while Route 53 remains a key component for DNS management.
 
 **Describe how you would implement a solution to grant access to various AWS services to the deployed application.**
+
 * The best approach is to use IAM roles and policies, ensuring least privilege access.
 * Grant access based on compute type: For EC2, create an IAM role with the required policies and
 attach it to the instance. For EKS, IRSA is the solution at the pod level—create an IAM OIDC
@@ -116,12 +120,14 @@ application, create the required Terraform modules, then use the role to create 
 account and assign it to the application.
 
 **Describe how would you automate deploying the solution across multiple environments using CI/CD.**
+
 * For each application and environment, the TFVAR file is located at the repository level. In
 CI/CD, the pipeline detects when a PR is created and selects the corresponding Test TFVAR file,
 which contains all the necessary information for that application in that environment.
 Then, the application is deployed.
 
 **Discuss any trade-offs considered when designing the solution.**
+
 *Mixing the infrastructure layer with the application layer is not a sustainable approach in the
 long run.
 *Using Terraform to deploy on Kubernetes is not ideal, as it lacks features available in Helm.
@@ -130,6 +136,7 @@ separate state for each application, and having a single state for all applicati
 different environments is not a good practice.
 
 **Explain how scalability, availability, security, and fault tolerance are addressed in the solution.**
+
 * Scalability: Using HPA (Horizontal Pod Autoscaler) in Kubernetes, Helm centralization, and a
 customizable Helm template can help. Providing a Docker base image is another key point, and
 deploying applications with Kubernetes Deployments offers additional advantages.
@@ -140,6 +147,7 @@ resources are always available.
 * Security: A SecurityContext is used to drop unnecessary capabilities. The Dockerfile runs a non-root user with no special permissions instead of the default root user.
 
 **Suggest any potential enhancements that could be made to improve the overall solution.**
+
 There is room for improvement in this solution, but the question is: for what purpose do you want
 to improve it? Is there a specific need or goal you want to achieve? The scale of the
 application, knowledge, development team, and other factors determine how we can enhance it. I
