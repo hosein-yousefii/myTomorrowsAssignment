@@ -36,6 +36,7 @@ applications/
     └── test
 ```
 The output is similar to:
+```
 applications = {
   "flask-config-app" = {
     "cluster" = "dev"
@@ -43,7 +44,7 @@ applications = {
     "version" = "1.1.0"
   }
 }
-
+```
 Depending on the company, number of applications, time to deliver and CICD pipelines this approach can be changed.
 
 ~                 
