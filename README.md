@@ -120,6 +120,7 @@ account and assign it to the application.
 CI/CD, the pipeline detects when a PR is created and selects the corresponding Test TFVAR file,
 which contains all the necessary information for that application in that environment.
 Then, the application is deployed.
+
 **Discuss any trade-offs considered when designing the solution.**
 *Mixing the infrastructure layer with the application layer is not a sustainable approach in the
 long run.
@@ -127,6 +128,7 @@ long run.
 Additionally, managing Terraform state becomes problematic—it’s not feasible to maintain a
 separate state for each application, and having a single state for all applications across
 different environments is not a good practice.
+
 **Explain how scalability, availability, security, and fault tolerance are addressed in the solution.**
 * Scalability: Using HPA (Horizontal Pod Autoscaler) in Kubernetes, Helm centralization, and a
 customizable Helm template can help. Providing a Docker base image is another key point, and
@@ -136,6 +138,7 @@ application. Pod anti-affinity is used to prevent multiple pods from running on 
 Probes ensure the application is live and ready, while resource requests guarantee that required
 resources are always available.
 * Security: A SecurityContext is used to drop unnecessary capabilities. The Dockerfile runs a non-root user with no special permissions instead of the default root user.
+
 **Suggest any potential enhancements that could be made to improve the overall solution.**
 There is room for improvement in this solution, but the question is: for what purpose do you want
 to improve it? Is there a specific need or goal you want to achieve? The scale of the
