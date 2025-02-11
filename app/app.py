@@ -8,6 +8,11 @@ app = Flask(__name__)
 def home():
     return "Hello, this is a message from your Python app!"
 
+# Health check endpoint
+@app.route("/healthz", methods=["GET"])
+def health_check():
+    return jsonify({"status": "healthy"}), 200
+
 # New route that uses secrets and configuration from environment variables
 @app.route("/config")
 def config():
@@ -32,3 +37,4 @@ def config():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+

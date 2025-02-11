@@ -2,8 +2,8 @@ apiVersion: v2
 name: flask-config-app
 description: A Helm chart for deploying Flask application
 type: application
-version: 1.0.0
-appVersion: 1.0.0
+version: 1.1.0
+appVersion: 1.1.0
 dependencies:
   - name: helm-functions
     repository: oci://ghcr.io/hosein-yousefii/mytomorrows/charts

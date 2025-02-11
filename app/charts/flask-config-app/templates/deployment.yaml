@@ -44,7 +44,7 @@ spec:
           livenessProbe:
             httpGet:
               port: {{ .Values.service.containerPort }}
-              path: /
+              path: /healthz
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -55,7 +55,7 @@ spec:
           readinessProbe:
             httpGet:
               port: {{ .Values.service.containerPort }}
-              path: /
+              path: /healthz
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}

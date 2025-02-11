@@ -1,0 +1,10 @@
+kubeconfig_path = "~/.kube/config"
+release_name    = "flask-config-app"
+oci_registry    = "oci://ghcr.io/hosein-yousefii/mytomorrows/charts"
+chart_name      = "flask-config-app"
+chart_version   = "1.0.0"
+namespace       = "default"
+create_namespace = false
+lint = true
+upgrade_install = true
+values          = {"replicaCount": 3, "global.logLevel": "debug"}
