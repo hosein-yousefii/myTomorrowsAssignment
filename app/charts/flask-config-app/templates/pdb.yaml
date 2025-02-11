@@ -1,0 +1,24 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include (printf "Functions.%s.fullname" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) }}
+  labels:
+{{ include (printf "Functions.%s.labels" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) | nindent 4 }}
+{{- include (printf "Functions.%s.additional-labels" (index .Values "helm-functions" "version")) (dict "values" .Values)| nindent 4 }}
+spec:
+  {{- if and (.Values.podDisruptionBudget.maxUnavailable) (.Values.podDisruptionBudget.minAvailable) }}
+  {{- fail "minAvailable and maxUnavailable cannot be both set!" }}
+  {{- end }}
+  {{- if not .Values.podDisruptionBudget.minAvailable }}
+  maxUnavailable: {{ default "30%" .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include (printf "Functions.%s.name" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values) }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+

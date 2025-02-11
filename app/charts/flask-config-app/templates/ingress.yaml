@@ -1,0 +1,19 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include (printf "Functions.%s.fullname" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+  labels:
+{{ include (printf "Functions.%s.labels" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) | nindent 4 }}
+{{- include (printf "Functions.%s.additional-labels" (index .Values "helm-functions" "version")) (dict "values" .Values)| nindent 4 }}
+spec:
+  rules:
+    - host: {{ include (printf "Functions.%s.resolveString" (index .Values "helm-functions" "version")) (dict "value" .Values.ingress.host "values" .Values) | trim }}
+      http:
+        paths:
+          {{- include (printf "Functions.%s.resolveBackends" (index .Values "helm-functions" "version")) (dict "backends" .Values.ingress.backends "rootCtx" $) | indent 10 }}
+{{- end }}
+

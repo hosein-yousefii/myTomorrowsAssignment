@@ -1,0 +1,89 @@
+########################################################################################################################
+#                               APPLICATION DDD NAMING CONVENTION (S A M P L E)                                        #
+########################################################################################################################
+labels:
+  domain: flask
+  subdomain: config
+  boundedContext: app
+  component: single-page-application
+  templateName: flask-python
+  templateVersion: 1.0.0
+  templateCommitHash: "222wer"
+########################################################################################################################
+
+global:
+  artifactoryUrl: "ghcr.io/hosein-yousefii"
+  clusterName: "dev"
+  apiBaseURL: "http://api.mytomorrows.com/v1"
+  logLevel: "warning"
+  maxConnections: "2"
+
+replicaCount: 2
+
+image:
+  name: "{{ .Values.global.artifactoryUrl }}/mytomorrows/container/flask-config-app"
+  tag: 1.0.0
+  pullPolicy: Always
+
+applicationName: "flask-config-app"
+
+env:
+  "API_BASE_URL": "{{ .Values.global.apiBaseURL }}"
+  "LOG_LEVEL": "{{ .Values.global.logLevel }}"
+  "MAX_CONNECTIONS": "{{ .Values.global.maxConnections }}"
+
+envSecrets:
+  - "secret-for-flask-config-app":
+      "SECRET_KEY": secret_key
+      "DB_PASSWORD": db_password
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  timeoutSeconds: 3
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  timeoutSeconds: 3
+  periodSeconds: 10
+  failureThreshold: 3
+  successThreshold: 1
+
+podDisruptionBudget:
+  enabled: true
+
+service:
+  type: ClusterIP
+  port: 80
+  containerPort: 5000
+
+ingress:
+  enabled: true
+  host: "flask-config-app.{{ .Values.global.clusterName }}.mytomorrows.com"
+  backends: 
+  - path: /
+    service: flask-config-app
+    port: 80
+  - path: /config
+    service: flask-config-app
+    port: 80
+
+# A minimal CPU Ratio of factor 4 is mandatory
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 400m
+    memory: 200Mi
+
+securityContext:
+  enabled: true
+  runAsUser: 10001
+  fsGroup: 10001
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include (printf "Functions.%s.fullname" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) }}
+  labels:
+{{ include (printf "Functions.%s.labels" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) | nindent 4 }}
+{{- include (printf "Functions.%s.additional-labels" (index .Values "helm-functions" "version")) (dict "values" .Values)| nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include (printf "Functions.%s.name" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values) }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+{{ include (printf "Functions.%s.labels" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) | nindent 8 }}
+{{- include (printf "Functions.%s.additional-labels" (index .Values "helm-functions" "version")) (dict "values" .Values)| nindent 8 }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: {{ include (printf "Functions.%s.name" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values) }}
+                    app.kubernetes.io/instance: {{ .Release.Name }}
+                    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: {{ include (printf "Functions.%s.name" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values) }}
+                    app.kubernetes.io/instance: {{ .Release.Name }}
+                    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+                topologyKey: topology.kubernetes.io/zone
+              weight: 100
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ include (printf "Functions.%s.resolveString" (index .Values "helm-functions" "version")) (dict "value" .Values.image.name "values" .Values) | trim -}}:{{ .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.service.containerPort }}
+              path: /
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.service.containerPort }}
+              path: /
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          {{- end }}
+          env:
+          {{ include (printf "Functions.%s.resolveEnvVars" (index .Values "helm-functions" "version")) (dict "env" .Values.env "values" .Values) | nindent 12 }}
+          {{ include (printf "Functions.%s.flattenEnvSecrets" (index .Values "helm-functions" "version")) (dict "secretName" .Values.secretName "envSecrets" .Values.envSecrets "values" .Values) | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.service.containerPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            capabilities:
+              drop:
+                - NET_RAW
+                - CHOWN
+          {{- end }}
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: {{ include (printf "Functions.%s.fullname" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) }}
+          name: config
+
