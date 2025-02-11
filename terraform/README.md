@@ -13,6 +13,7 @@ with this Terraform module it's also possible to change any variable in values.y
 ## Usage
 add your applications like the existing one and run terraform plan and apply.
 This is the structure of terraform:
+```
 applications/
 └── environments
     ├── common.tfvars
@@ -33,7 +34,7 @@ applications/
     │   │   └── terraform.tfvars
     │   └── prod-common.tfvars
     └── test
-
+```
 The output is similar to:
 applications = {
   "flask-config-app" = {
