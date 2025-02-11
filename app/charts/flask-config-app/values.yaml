@@ -39,6 +39,7 @@ envSecrets:
 
 livenessProbe:
   enabled: true
+  path: /healthz
   initialDelaySeconds: 10
   timeoutSeconds: 3
   periodSeconds: 10
@@ -47,6 +48,7 @@ livenessProbe:
 
 readinessProbe:
   enabled: true
+  path: /healthz
   initialDelaySeconds: 10
   timeoutSeconds: 3
   periodSeconds: 10
@@ -54,6 +56,9 @@ readinessProbe:
   successThreshold: 1
 
 podDisruptionBudget:
+  enabled: true
+
+affinity:
   enabled: true
 
 service:
@@ -64,11 +69,15 @@ service:
 ingress:
   enabled: true
   host: "flask-config-app.{{ .Values.global.clusterName }}.mytomorrows.com"
+  ingressclassName: nginx
   backends: 
   - path: /
     service: flask-config-app
     port: 80
   - path: /config
+    service: flask-config-app
+    port: 80
+  - path: /healthz
     service: flask-config-app
     port: 80
 

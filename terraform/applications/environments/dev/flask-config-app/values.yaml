@@ -1,0 +1,3 @@
+global:
+  clusterName: "prod"
+replicaCount: 5

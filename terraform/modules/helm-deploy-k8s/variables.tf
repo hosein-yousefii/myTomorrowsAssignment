@@ -40,5 +40,5 @@ variable "upgrade_install" {
 
 variable "values" {
   description = "Override values for the Helm chart"
-  type        = map(any)
+  type        = list(string)
 }

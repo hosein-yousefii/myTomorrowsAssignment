@@ -9,5 +9,9 @@ module "helm_deploy_k8s" {
   create_namespace = lookup(each.value, "create_namespace", "true")
   lint             = lookup(each.value, "lint", "true")
   upgrade_install  = lookup(each.value, "upgrade_install", "true")
-  values           = lookup(each.value, "values", {})
+  values           = [yamlencode(lookup(each.value, "values", {}))]
+
+  # Also possible to use values.yaml itself
+  #values = [file("applications/environments/${terraform.workspace}/${each.key}/values.yaml")]
+
 }

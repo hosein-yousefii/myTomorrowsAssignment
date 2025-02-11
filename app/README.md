@@ -31,6 +31,14 @@ chart templates (General). By including this chart you are able to use functions
 
 The chart is already packaged and pushed to my registry in github, [check](https://github.com/users/hosein-yousefii/packages/container/package/mytomorrows%2Fcharts%2Fflask-config-app).
 
+```
+In order to template the chart you need to resolve the dependency first:
+helm dependency build
+
+# test if templating is working
+helm template flask-config-app .
+```
+
 ## Secret
 Currently you see secrets are placed in the chart, but normally it shouldn't be like that unless it's encrypted with kubeseal, gitcrypt, vault or 
 similar services, in order to make the job easier I just placed it there.

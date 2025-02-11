@@ -17,6 +17,7 @@ spec:
 {{ include (printf "Functions.%s.labels" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) | nindent 8 }}
 {{- include (printf "Functions.%s.additional-labels" (index .Values "helm-functions" "version")) (dict "values" .Values)| nindent 8 }}
     spec:
+      {{- if .Values.affinity.enabled }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -36,6 +37,7 @@ spec:
                     app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
                 topologyKey: topology.kubernetes.io/zone
               weight: 100
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: {{ include (printf "Functions.%s.resolveString" (index .Values "helm-functions" "version")) (dict "value" .Values.image.name "values" .Values) | trim -}}:{{ .Chart.AppVersion }}
@@ -44,7 +46,7 @@ spec:
           livenessProbe:
             httpGet:
               port: {{ .Values.service.containerPort }}
-              path: /healthz
+              path: {{ .Values.livenessProbe.path }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -55,7 +57,7 @@ spec:
           readinessProbe:
             httpGet:
               port: {{ .Values.service.containerPort }}
-              path: /healthz
+              path: {{ .Values.readinessProbe.path }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}

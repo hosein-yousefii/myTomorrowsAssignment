@@ -5,7 +5,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   annotations:
-    kubernetes.io/ingress.class: haproxy
+    kubernetes.io/ingress.class: {{ .Values.ingress.ingressclassName }}
   labels:
 {{ include (printf "Functions.%s.labels" (index .Values "helm-functions" "version")) (dict "chart" .Chart "values" .Values "release" .Release) | nindent 4 }}
 {{- include (printf "Functions.%s.additional-labels" (index .Values "helm-functions" "version")) (dict "values" .Values)| nindent 4 }}

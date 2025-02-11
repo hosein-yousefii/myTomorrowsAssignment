@@ -9,6 +9,6 @@ resource "helm_release" "application" {
   lint             = var.lint
   upgrade_install  = var.upgrade_install
 
-  values = [yamlencode(var.values)]
+  values = var.values
 }
 

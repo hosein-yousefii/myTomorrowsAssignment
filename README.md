@@ -15,6 +15,27 @@ The approach that I followed is in between:
 - we have a helm template that is not fully customized, but it's enough to be able to integrate it to applications.
 - there are rooms to make it fully customizable, in this case we need to specify the application values on terraform level.
 
+## Usage
+In order to run this application on your local system, I suggest to run it on a VM with helm and terraform command.
+```
+./minikube/setup.sh
+
+# when setup finished then run the terraform to deploy application.
+cd terraform
+terraform workspace new dev
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+
+# After it's finished you need to add LB IP to your VMs hosts
+echo "192.168.56.160 flask-config-app.dev.mytomorrows.com" >> /etc/hosts
+
+# try to resolve the path
+curl flask-config-app.dev.mytomorrows.com/config
+```
+
 ## Containerization
 - for each application and repository read the README.md.
 - Registry: find all images [here](https://github.com/hosein-yousefii?tab=packages)
