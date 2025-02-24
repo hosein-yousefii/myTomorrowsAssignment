@@ -3,6 +3,11 @@ name: Build Docker Image on Demand
 on:
   workflow_dispatch:
 
+env:
+  IMAGE_NAME: ""
+  CONTAINER_REPO: "mytomorrows/container"
+  REGISTRY_URL: "ghcr.io/hosein-yousefii"
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,37 +24,48 @@ jobs:
         run: |
           # Fetch all tags
           git fetch --tags
-          # Get the latest tag, if available
           LATEST_TAG=$(git describe --tags --abbrev=0 || echo "none")
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
       - name: Calculate the new version tag
         id: version
         run: |
-          # If no tags exist, create a base version (e.g., v1.0.1)
           if [ "${{ env.LATEST_TAG }}" == "none" ]; then
             COMMIT_COUNT=$(git rev-list --count HEAD)
             NEW_TAG="v1.0.${COMMIT_COUNT}"
             echo "No tags found, starting with ${NEW_TAG}"
           else
-            # Extract the numeric part of the latest tag (e.g., 25 from v1.2.25)
             VERSION_PARTS=(${LATEST_TAG//./ })
-            TAG_MAJOR_MINOR="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}"  # Extract v1.2
-
-            # Get the number of commits since the latest tag
+            TAG_MAJOR_MINOR="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}"
             COMMITS_SINCE_TAG=$(git rev-list ${LATEST_TAG}..HEAD --count)
-
-            # Calculate the new version based on commit count
             NEW_TAG="${TAG_MAJOR_MINOR}.$((COMMITS_SINCE_TAG + 1))"
           fi
-
           echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
           echo "Calculated new tag: ${NEW_TAG}"
+
+      - name: Determine Image Name
+        id: image_name
+        run: |
+          # Use IMAGE_NAME if defined, otherwise use repo name
+          if [ -z "${{ env.IMAGE_NAME }}" ]; then
+            REPO_NAME="${GITHUB_REPOSITORY##*/}"
+            IMAGE_NAME="${{ env.CONTAINER_REPO }}/$REPO_NAME"
+          else
+            IMAGE_NAME="${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}"
+          fi
           
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+          echo "Using image name: ${IMAGE_NAME}"
+
+      - name: Authenticate to GitHub Container Registry (GHCR)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
       - name: Build Docker Image
         run: |
           docker buildx build \
             --platform linux/amd64 \
             --progress=plain \
-            --tag my-app:${{ env.NEW_TAG }} \
+            --tag "${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:${{ env.NEW_TAG }}" \
+            --push \
             ./app
