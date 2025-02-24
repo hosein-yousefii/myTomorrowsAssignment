@@ -8,6 +8,7 @@ env:
   CONTAINER_REPO: "mytomorrows/container"
   CHART_REPO: "mytomorrows/charts"
   REGISTRY_URL: "ghcr.io/hosein-yousefii"
+  HELM_VERSION: "latest"
   
 jobs:
   build:
