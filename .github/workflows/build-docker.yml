@@ -122,5 +122,5 @@ jobs:
 
       - name: Push Helm Chart to GHCR
         run: |
-          helm registry login ghcr.io -u $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
+          helm registry login ghcr.io -u $GITHUB_ACTOR --password ${{ secrets.REGISTRYTOKEN }}
           helm push ./app/chart-packages/*.tgz oci://${{ env.REGISTRY_URL }}/${{ env.CHART_REPO }}
