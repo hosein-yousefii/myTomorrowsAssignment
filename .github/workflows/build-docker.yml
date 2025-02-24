@@ -6,16 +6,24 @@ on:
 env:
   IMAGE_NAME: ""
   CONTAINER_REPO: "mytomorrows/container"
-  REGISTRY_URL: "ghcr.io/hosein-yousefii"
   CHART_REPO: "mytomorrows/charts"
+  REGISTRY_URL: "ghcr.io/hosein-yousefii"
+  UBUNTU_VERSION: "latest"
+  HELM_VERSION: "latest"
   
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ env.UBUNTU_VERSION }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Save Repository as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-files
+          path: . 
 
       - name: Set up Docker Buildx (BuildKit)
         uses: docker/setup-buildx-action@v3
@@ -82,17 +90,20 @@ jobs:
             ./app
 
   package-helm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ env.UBUNTU_VERSION }}
     needs: build
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Download Repository Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: repo-files
+          path: .
 
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
-          version: latest
+          version: ${{ env.HELM_VERSION }}
 
       - name: Download Version Artifact
         uses: actions/download-artifact@v4
