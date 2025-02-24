@@ -26,25 +26,21 @@ jobs:
       - name: Calculate the new version tag
         id: version
         run: |
-          # If no tags exist, create a base version (e.g., v1.0.0)
+          # If no tags exist, create a base version (e.g., v1.0.1)
           if [ "${{ env.LATEST_TAG }}" == "none" ]; then
-            NEW_TAG="v1.0.0"
+            COMMIT_COUNT=$(git rev-list --count HEAD)
+            NEW_TAG="v1.0.${COMMIT_COUNT}"
             echo "No tags found, starting with ${NEW_TAG}"
           else
             # Extract the numeric part of the latest tag (e.g., 25 from v1.2.25)
             VERSION_PARTS=(${LATEST_TAG//./ })
             TAG_MAJOR_MINOR="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}"  # Extract v1.2
-            LAST_VERSION="${VERSION_PARTS[2]}"  # Extract 25 from v1.2.25
 
             # Get the number of commits since the latest tag
             COMMITS_SINCE_TAG=$(git rev-list ${LATEST_TAG}..HEAD --count)
 
-            # Calculate the new version
-            if [ "$COMMITS_SINCE_TAG" -gt 0 ]; then
-              NEW_TAG="${TAG_MAJOR_MINOR}.$((LAST_VERSION + COMMITS_SINCE_TAG))"
-            else
-              NEW_TAG="${LATEST_TAG}"  # If no commits, use the existing tag
-            fi
+            # Calculate the new version based on commit count
+            NEW_TAG="${TAG_MAJOR_MINOR}.$((COMMITS_SINCE_TAG + 1))"
           fi
 
           echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
