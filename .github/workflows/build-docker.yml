@@ -1,4 +1,4 @@
-name: Build Docker Image on Demand
+name: pipeline-dev
 
 on:
   workflow_dispatch:
@@ -9,10 +9,11 @@ env:
   CHART_REPO: "mytomorrows/charts"
   REGISTRY_URL: "ghcr.io/hosein-yousefii"
   HELM_VERSION: "3.12.3"
+  UBUNTU_IMAGE: "ubuntu-22.04"
   
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ env.UBUNTU_IMAGE }}
 
     steps:
       - name: Checkout Repository
@@ -89,7 +90,7 @@ jobs:
             ./app
 
   package-helm:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ env.UBUNTU_IMAGE }}
     needs: build
 
     steps:
