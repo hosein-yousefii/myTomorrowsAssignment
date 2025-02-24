@@ -9,11 +9,10 @@ env:
   CHART_REPO: "mytomorrows/charts"
   REGISTRY_URL: "ghcr.io/hosein-yousefii"
   HELM_VERSION: "3.12.3"
-  UBUNTU_IMAGE: "ubuntu-22.04"
   
 jobs:
   build:
-    runs-on: ${{ env.UBUNTU_IMAGE }}
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
@@ -89,8 +88,16 @@ jobs:
             --push \
             ./app
 
+      - name: Scan Docker Image for Vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:${{ env.NEW_TAG }}"
+          format: "table"
+          severity: "CRITICAL"
+          exit-code: 1
+
   package-helm:
-    runs-on: ${{ env.UBUNTU_IMAGE }}
+    runs-on: ubuntu-22.04
     needs: build
 
     steps:
@@ -131,6 +138,11 @@ jobs:
       - name: Build Helm Dependencies
         run: |
           helm dependency build ./app/charts/flask-config-app
+
+      - name: Helm Lint (Validate Helm Chart)
+        run: |
+          CHART_PATH="./app/charts/flask-config-app"
+          helm lint "$CHART_PATH"
 
       - name: Package Helm Chart
         run: |

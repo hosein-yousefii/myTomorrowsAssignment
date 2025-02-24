@@ -1,0 +1,15 @@
+name: linting
+
+on:
+  workflow_run:
+    workflows: ["pipeline-dev"]
+    types:
+      - completed
+
+jobs:
+  next-job:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Print Message
+        run: nc minio.minio.svc.kuber.home 9000
+
