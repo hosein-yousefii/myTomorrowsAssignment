@@ -14,11 +14,24 @@ jobs:
       - name: Set up Docker Buildx (BuildKit)
         uses: docker/setup-buildx-action@v3
 
+      - name: Get the latest git tag
+        id: tag
+        run: |
+          git fetch --tags
+          TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          # If there's no tag, calculate based on the previous tag and commit count
+          if [ "$TAG" == "v0.0.0" ]; then
+            PREV_TAG="v0.0.1"  # Default if no tag exists
+            COMMIT_COUNT=$(git rev-list --count HEAD)
+            TAG="${PREV_TAG}-bug-${COMMIT_COUNT}"
+          fi
+          echo "TAG=${TAG}" >> $GITHUB_ENV
+          echo "Calculated tag: $TAG"
+          
       - name: Build Docker Image
         run: |
           docker buildx build \
             --platform linux/amd64 \
             --progress=plain \
-            --tag my-app:latest \
-            --tag my-app:${{ github.sha }} \
+            --tag my-app:${{ env.TAG }} \
             ./app
