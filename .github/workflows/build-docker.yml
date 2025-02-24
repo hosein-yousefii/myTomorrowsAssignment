@@ -14,31 +14,37 @@ jobs:
       - name: Set up Docker Buildx (BuildKit)
         uses: docker/setup-buildx-action@v3
 
-      - name: Get the latest tag
+      - name: Get the latest tag or create initial version
         id: tag
         run: |
           # Fetch all tags
           git fetch --tags
           # Get the latest tag, if available
-          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "none")
           echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
 
       - name: Calculate the new version tag
         id: version
         run: |
-          # Extract the numeric part of the latest tag (e.g., 25 from v1.2.25)
-          VERSION_PARTS=(${LATEST_TAG//./ })
-          TAG_MAJOR_MINOR="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}"  # Extract v1.2
-          LAST_VERSION="${VERSION_PARTS[2]}"  # Extract 25 from v1.2.25
-
-          # Get the number of commits since the latest tag
-          COMMITS_SINCE_TAG=$(git rev-list ${LATEST_TAG}..HEAD --count)
-
-          # Calculate the new version
-          if [ "$COMMITS_SINCE_TAG" -gt 0 ]; then
-            NEW_TAG="${TAG_MAJOR_MINOR}.$((LAST_VERSION + COMMITS_SINCE_TAG))"
+          # If no tags exist, create a base version (e.g., v1.0.0)
+          if [ "${{ env.LATEST_TAG }}" == "none" ]; then
+            NEW_TAG="v1.0.0"
+            echo "No tags found, starting with ${NEW_TAG}"
           else
-            NEW_TAG="${LATEST_TAG}"  # If no commits, use the existing tag
+            # Extract the numeric part of the latest tag (e.g., 25 from v1.2.25)
+            VERSION_PARTS=(${LATEST_TAG//./ })
+            TAG_MAJOR_MINOR="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}"  # Extract v1.2
+            LAST_VERSION="${VERSION_PARTS[2]}"  # Extract 25 from v1.2.25
+
+            # Get the number of commits since the latest tag
+            COMMITS_SINCE_TAG=$(git rev-list ${LATEST_TAG}..HEAD --count)
+
+            # Calculate the new version
+            if [ "$COMMITS_SINCE_TAG" -gt 0 ]; then
+              NEW_TAG="${TAG_MAJOR_MINOR}.$((LAST_VERSION + COMMITS_SINCE_TAG))"
+            else
+              NEW_TAG="${LATEST_TAG}"  # If no commits, use the existing tag
+            fi
           fi
 
           echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
