@@ -107,13 +107,14 @@ jobs:
 
       - name: Update Helm Chart Version
         run: |
-          CHART_PATH="./app/charts/flask-config-app/Chart.yaml"
+          CHART_PATH="./app/charts/flask-config-app/Chart.yaml"          
           if [ ! -f "$CHART_PATH" ]; then
             echo "Error: Chart.yaml not found in $CHART_PATH"
             exit 1
           fi
-          yq eval -i '.appVersion = env.VERSION' "$CHART_PATH"
-          yq eval -i '.version = env.VERSION' "$CHART_PATH"
+          VERSION=$(cat container_version.txt)
+          yq eval -i ".appVersion = \"${VERSION}\"" "$CHART_PATH"
+          yq eval -i ".version = \"${VERSION}\"" "$CHART_PATH"
           echo "Updated Chart.yaml with appVersion=${VERSION} and version=${VERSION}"
 
       - name: Package Helm Chart
