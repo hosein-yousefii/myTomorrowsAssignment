@@ -7,6 +7,7 @@ env:
   IMAGE_NAME: ""
   CONTAINER_REPO: "mytomorrows/container"
   REGISTRY_URL: "ghcr.io/hosein-yousefii"
+  CHART_REPO: "mytomorrows/charts"
   
 jobs:
   build:
@@ -43,6 +44,16 @@ jobs:
           echo "NEW_TAG=${NEW_TAG}" >> $GITHUB_ENV
           echo "Calculated new tag: ${NEW_TAG}"
 
+          # Save the version for the next job
+          echo "${NEW_TAG}" > container_version.txt
+          echo "Saving version as artifact..."
+
+      - name: Upload Version Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: container_version
+          path: container_version.txt
+
       - name: Determine Image Name
         id: image_name
         run: |
@@ -57,11 +68,11 @@ jobs:
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "Using image name: ${IMAGE_NAME}"
 
-      - name: Authenticate to GitHub Container Registry (GHCR)
+      - name: Authenticate Container Registry (GHCR)
         run: |
           echo "${{ secrets.REGISTRYTOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build Docker Image
+      - name: Build Docker Image and Push
         run: |
           docker buildx build \
             --platform linux/amd64 \
@@ -69,3 +80,47 @@ jobs:
             --tag "${{ env.REGISTRY_URL }}/${{ env.IMAGE_NAME }}:${{ env.NEW_TAG }}" \
             --push \
             ./app
+
+  package-helm:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: latest
+
+      - name: Download Version Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: container_version
+
+      - name: Load Container Version
+        run: |
+          VERSION=$(cat container_version.txt)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Using container version: $VERSION"
+
+      - name: Update Helm Chart Version
+        run: |
+          CHART_PATH="./app/charts/flask-config-app/Chart.yaml"
+          if [ ! -f "$CHART_PATH" ]; then
+            echo "Error: Chart.yaml not found in $CHART_PATH"
+            exit 1
+          fi
+          yq eval -i '.appVersion = env.VERSION' "$CHART_PATH"
+          yq eval -i '.version = env.VERSION' "$CHART_PATH"
+          echo "Updated Chart.yaml with appVersion=${VERSION} and version=${VERSION}"
+
+      - name: Package Helm Chart
+        run: |
+          helm package ./app/charts/flask-config-app --destination ./app/chart-packages
+
+      - name: Push Helm Chart to GHCR
+        run: |
+          helm registry login ghcr.io -u $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
+          helm push ./app/chart-packages/*.tgz oci://${{ env.REGISTRY_URL }}/${{ env.CHART_REPO }}
