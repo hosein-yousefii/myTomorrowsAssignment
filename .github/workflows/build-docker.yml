@@ -117,6 +117,10 @@ jobs:
           yq eval -i ".version = \"${VERSION}\"" "$CHART_PATH"
           echo "Updated Chart.yaml with appVersion=${VERSION} and version=${VERSION}"
 
+      - name: Build Helm Dependencies
+        run: |
+          helm dependency build ./app/charts/flask-config-app
+
       - name: Package Helm Chart
         run: |
           helm package ./app/charts/flask-config-app --destination ./app/chart-packages
